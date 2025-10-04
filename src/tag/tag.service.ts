@@ -1,10 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 
-@Module({
-  imports: [],
-  controllers: [],
-  providers: [],
-})
-export class TagModule {}
-
-// export default TagModule;
+@Injectable()
+export class TagService {
+  getAll () {
+    return ['ai' , 'typescript' , 'javascript']
+  }
+}
