@@ -7,9 +7,9 @@ const config: PostgresConnectionOptions = {
     username: "devuser",
     password: "1234",
     database: "blog",
-    // synchronize: true,
-    // logging: true,
-    // entities: ["dist/**/*.entity.js"],
+    entities: [__dirname+"/**/*.entity.{.ts,.js}"],
+    synchronize: true,
+    logging: true,
     // migrations: ["dist/migration/**/*.js"],
     // subscribers: ["dist/subscriber/**/*.js"],
     // cli: {
