@@ -10,6 +10,7 @@ import {compare} from 'bcrypt';
 import { LoginUserDto } from "./DTO/loginUser.dto";
 import { response } from "express";
 import { request } from "express";
+import { UpdateUserDto } from "./DTO/updateUser.dto";
 
 @Injectable()
 export class UserService {
@@ -41,23 +42,31 @@ export class UserService {
         return this.generateUserResponse(savedUser);
     }
 
-    // loginUserDto is must refer to a type not the class itself
-    async loginUser(LoginUserDto : string) : Promise<UserEntity> {
+    async loginUser(loginUserDto: LoginUserDto): Promise<IUserResponse> {
         const user = await this.userRepository.findOne({
             where: {
-                email: LoginUserDto               
-            }});
+                email: loginUserDto.email               
+            }
+        });
 
         if (!user) {
-            throw new HttpException("User not found" , HttpStatus.UNPROCESSABLE_ENTITY);
+            throw new HttpException('Invalid credentials', HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        // this is must compare between the LoginUserDto password and the user password (deleted the .password of the loginuserdto)
-        const matchpassword = await compare(LoginUserDto, user.password);
-        if (!matchpassword) {
-            throw new HttpException("Password is incorrect" , HttpStatus.UNPROCESSABLE_ENTITY);
+        const isPasswordValid = await compare(loginUserDto.password, user.password);
+        
+        if (!isPasswordValid) {
+            throw new HttpException('Invalid credentials', HttpStatus.UNPROCESSABLE_ENTITY);
         }
-        return user;
+        
+        return this.generateUserResponse(user);
+    }
+
+    async updateUser(id: number, updateUserDto: UpdateUserDto) : Promise<IUserResponse> {
+        const user = await this.findById(id);
+        Object.assign(user, updateUserDto);
+        const savedUser = await this.userRepository.save(user);
+        return this.generateUserResponse(savedUser);
     }
 
     async findById(id: number) : Promise<UserEntity> {
@@ -73,26 +82,30 @@ export class UserService {
         return user;
     }
 
-    generateToken(user: UserEntity): string {
-        console.log(process.env.JWT_SECRET);
+    async getCurrentUser(user: UserEntity): Promise<IUserResponse> {
+        return this.generateUserResponse(user);
+    }
+
+    private generateToken(user: UserEntity): string {
+        if (!process.env.JWT_SECRET) {
+            throw new HttpException('JWT_SECRET is not defined', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         return sign(
             {
                 id: user.id,
                 username: user.username,
                 email: user.email,
             },
-            process.env.JWT_SECRET, // secret string part in the json web token structure
-        )
-
-        // const decode = verify(generatedToken, "ASDGFGF52JfddsfhddADFGA444DGsdfhg561SADAf");
-        // console.log(decode);
-        // return generatedToken;
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
     }
 
-    generateUserResponse(user: UserEntity) : IUserResponse {
-        if (!user.id) {
-            throw new HttpException("User not found" , HttpStatus.UNPROCESSABLE_ENTITY);
-        }
+    private generateUserResponse(user: UserEntity): IUserResponse {
+        // if (!user.id) {
+        //     throw new HttpException("User not found" , HttpStatus.UNPROCESSABLE_ENTITY);
+        // }
         
         return {
             user: {

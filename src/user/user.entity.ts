@@ -1,5 +1,7 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import * as bcrypt from 'bcrypt';
+import { ArticleEntity } from "../article/article.entity";
+import { CommentEntity } from "../comment/comment.entity";
 
 
 @Entity({name: 'users'})
@@ -10,8 +12,9 @@ export class UserEntity {
     @Column()
     username: string
 
+    // Make the email obtional for the get profile method functionality in the profile service
     @Column()
-    email: string
+    email?: string
 
     @Column({default: ''})
     bio: string
@@ -19,9 +22,19 @@ export class UserEntity {
     @Column({default: ''})
     image: string
 
-// make the password optional to be able to update the password or delete it in the future
+    // Make the password optional to be able to update the password or delete it in the future
     @Column()
     password?: string
+
+    @OneToMany(() => ArticleEntity, article => article.author)
+    articles: ArticleEntity[]
+
+    @ManyToMany(() => ArticleEntity)
+    @JoinTable()
+    favorites: ArticleEntity[]
+
+    @OneToMany(() => CommentEntity, comment => comment.author)
+    comments: CommentEntity[];
 
     @BeforeInsert()
     @BeforeUpdate()
