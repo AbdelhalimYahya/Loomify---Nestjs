@@ -1,0 +1,56 @@
+@startuml Module Dependencies
+
+!theme plain
+skinparam componentStyle uml2
+skinparam backgroundColor white
+
+package "Core Modules" {
+    [AppModule]
+    [TypeOrmModule]
+    [ConfigModule]
+}
+
+package "Feature Modules" {
+    [UserModule]
+    [ArticleModule]
+    [CommentModule]
+    [ProfileModule]
+    [TagModule]
+}
+
+package "Shared Components" {
+    [AuthGuard]
+    [AuthMiddleware]
+    [ValidationPipe]
+}
+
+' Module Dependencies
+[AppModule] --> [TypeOrmModule] : imports
+[AppModule] --> [ConfigModule] : imports
+[AppModule] --> [UserModule] : imports
+[AppModule] --> [ArticleModule] : imports
+[AppModule] --> [CommentModule] : imports
+[AppModule] --> [ProfileModule] : imports
+[AppModule] --> [TagModule] : imports
+
+[UserModule] ..> [AuthMiddleware] : uses
+[ArticleModule] ..> [AuthGuard] : uses
+[CommentModule] ..> [AuthGuard] : uses
+[ProfileModule] ..> [AuthGuard] : uses
+
+[ArticleModule] ..> [UserModule] : depends on
+[CommentModule] ..> [UserModule] : depends on
+[CommentModule] ..> [ArticleModule] : depends on
+[ProfileModule] ..> [UserModule] : depends on
+
+note right of [AuthGuard]
+    Handles authentication
+    for protected routes
+end note
+
+note right of [TypeOrmModule]
+    Manages database
+    connections and entities
+end note
+
+@enduml

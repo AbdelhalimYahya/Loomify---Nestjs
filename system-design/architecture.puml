@@ -1,0 +1,48 @@
+@startuml System Architecture
+
+!theme plain
+skinparam componentStyle uml2
+skinparam backgroundColor white
+skinparam defaultTextAlignment center
+
+cloud "Client Applications" {
+    [Web Client]
+    [Mobile Client]
+}
+
+package "Loomify NestJS Backend" {
+    [Authentication Service] as auth
+    [Article Service] as articles
+    [User Service] as users
+    [Comment Service] as comments
+    [Profile Service] as profiles
+    [Tag Service] as tags
+    
+    database "PostgreSQL" {
+        [Users Table]
+        [Articles Table]
+        [Comments Table]
+        [Follows Table]
+        [Tags Table]
+    }
+}
+
+' Client connections
+[Web Client] --> auth : HTTP/REST
+[Mobile Client] --> auth : HTTP/REST
+
+' Internal connections
+auth --> [Users Table]
+articles --> [Articles Table]
+comments --> [Comments Table]
+profiles --> [Follows Table]
+tags --> [Tags Table]
+
+' Service Dependencies
+articles ..> users : uses
+comments ..> users : uses
+comments ..> articles : uses
+profiles ..> users : uses
+articles ..> profiles : uses
+
+@enduml

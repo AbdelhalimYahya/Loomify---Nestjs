@@ -1,0 +1,64 @@
+@startuml Service Interactions
+
+!theme plain
+skinparam backgroundColor white
+skinparam sequence {
+    ArrowColor black
+    LifeLineBorderColor black
+    LifeLineBackgroundColor white
+    ParticipantBorderColor black
+    ParticipantBackgroundColor white
+    ParticipantFontColor black
+}
+
+actor Client
+participant "ArticleController" as AC
+participant "ArticleService" as AS
+participant "UserService" as US
+participant "CommentService" as CS
+participant "ProfileService" as PS
+database "Database" as DB
+
+== Article Creation ==
+Client -> AC : POST /articles
+activate AC
+AC -> AS : createArticle()
+activate AS
+AS -> DB : save article
+DB --> AS : saved article
+AS -> PS : check following status
+PS --> AS : following status
+AS --> AC : article response
+deactivate AS
+AC --> Client : article with author info
+deactivate AC
+
+== Adding Comment ==
+Client -> AC : POST /articles/:slug/comments
+activate AC
+AC -> CS : createComment()
+activate CS
+CS -> DB : save comment
+DB --> CS : saved comment
+CS -> PS : get author following status
+PS --> CS : following status
+CS --> AC : comment response
+deactivate CS
+AC --> Client : comment with author info
+deactivate AC
+
+== Favoriting Article ==
+Client -> AC : POST /articles/:slug/favorite
+activate AC
+AC -> AS : addToFavorites()
+activate AS
+AS -> DB : update article & user
+DB --> AS : updated data
+AS -> PS : check following status
+PS --> AS : following status
+AS --> AC : updated article
+deactivate AS
+AC --> Client : article with favorite status
+deactivate AC
+
+@enduml

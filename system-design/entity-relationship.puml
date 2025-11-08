@@ -1,0 +1,66 @@
+@startuml Entity Relationship
+
+!theme plain
+skinparam linetype ortho
+skinparam backgroundColor white
+
+entity "User" as user {
+    * id : number <<PK>>
+    --
+    * username : string
+    * email : string
+    bio : string
+    image : string
+    * password : string
+}
+
+entity "Article" as article {
+    * id : number <<PK>>
+    --
+    * slug : string
+    * title : string
+    description : string
+    body : string
+    tagList : string[]
+    * createdAt : datetime
+    * updatedAt : datetime
+    favoritesCount : number
+    * authorId : number <<FK>>
+}
+
+entity "Comment" as comment {
+    * id : number <<PK>>
+    --
+    * body : string
+    * createdAt : datetime
+    * updatedAt : datetime
+    * authorId : number <<FK>>
+    * articleId : number <<FK>>
+}
+
+entity "Follow" as follow {
+    * id : number <<PK>>
+    --
+    * followerId : number <<FK>>
+    * followingId : number <<FK>>
+}
+
+entity "Tag" as tag {
+    * id : number <<PK>>
+    --
+    * name : string
+    * createdAt : datetime
+}
+
+' Relationships
+user ||--o{ article : authors
+user ||--o{ comment : writes
+user ||--o{ follow : follows >
+article ||--o{ comment : has
+user }o--o{ article : favorites
+
+note right of user : User can follow multiple users\nand be followed by multiple users
+note right of article : Articles can have multiple tags\nand be favorited by multiple users
+note bottom of comment : Comments are always\nattached to an article
+
+@enduml

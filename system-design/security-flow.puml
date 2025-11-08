@@ -1,0 +1,61 @@
+@startuml Security Flow
+
+!theme plain
+skinparam backgroundColor white
+
+actor Client
+participant "AuthMiddleware" as AM
+participant "AuthGuard" as AG
+participant "UserService" as US
+database "Database" as DB
+
+== Authentication Process ==
+Client -> AM : Request with JWT
+activate AM
+AM -> AM : Extract token
+AM -> US : Verify token
+activate US
+US -> DB : Find user
+DB --> US : User data
+US --> AM : User entity
+deactivate US
+AM -> AM : Attach user to request
+AM --> Client : Continue with request
+deactivate AM
+
+== Protected Route Access ==
+Client -> AG : Access protected route
+activate AG
+AG -> AG : Check request.user
+alt User authenticated
+    AG --> Client : Allow access
+else No valid user
+    AG --> Client : 401 Unauthorized
+end
+deactivate AG
+
+== Token Generation ==
+Client -> US : Login request
+activate US
+US -> DB : Validate credentials
+DB --> US : User data
+US -> US : Generate JWT
+US --> Client : Token + user data
+deactivate US
+
+note right of AM
+  Processes every request
+  to attach user context
+end note
+
+note right of AG
+  Guards specific routes
+  that require authentication
+end note
+
+note right of US
+  Handles user authentication
+  and token generation
+end note
+
+@enduml
